@@ -42,4 +42,11 @@ struct Config {
 	float ambientCoefficient = 0.1f;
 	glm::vec3 lightColor = glm::vec3(1.0f);
 
+	// ===== Part 3: Bounce =====
+
+    uint32_t maxCollisions = 5;
+    uint32_t colorFrames = 10;
+	glm::vec3 blinkColor = glm::vec3(0.0f, 1.0f, 0.0f);
+    bool enableBlink = false;
+
 };

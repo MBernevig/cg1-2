@@ -28,6 +28,12 @@ void Menu::draw() {
     ImGui::Separator();
     drawParticleColorControls();
 
+	ImGui::Spacing();
+	ImGui::Text("Bounce");
+	ImGui::Separator();
+	drawBounceControls();
+
+
     ImGui::End();
 }
 
@@ -80,3 +86,10 @@ void Menu::drawParticleColorControls() {
 	ImGui::ColorEdit3("Light color", glm::value_ptr(m_config.lightColor));
 }
 
+void Menu::drawBounceControls() {
+	ImGui::Checkbox("Enable blink", &m_config.enableBlink);
+	ImGui::SliderInt("Max collisions", reinterpret_cast<int*>(&m_config.maxCollisions), 1, 10);
+	ImGui::SliderInt("Color frames", reinterpret_cast<int*>(&m_config.colorFrames), 1, 30);
+	ImGui::ColorEdit3("Blink color", glm::value_ptr(m_config.blinkColor));
+
+}

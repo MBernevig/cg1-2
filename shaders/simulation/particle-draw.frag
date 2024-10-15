@@ -16,6 +16,9 @@ uniform vec3 lowSpeedColor;
 uniform vec3 highSpeedColor;
 uniform float maxSpeed;
 
+uniform vec3 blinkColor;
+uniform bool enableBlink;
+
 void main() {
     vec3 baseColor = vec3(1.0);
 
@@ -42,5 +45,14 @@ void main() {
         finalColor = ambientTerm + diffuseTerm;
     }
 
-    fragColor = vec4(finalColor, 1.0);  // Output the color with alpha = 1.0
+    if(enableBlink) {
+        finalColor = vec3(fragBounceData.y);
+    }
+
+    // Apply blink color if needed
+    if (enableBlink && fragBounceData.y > 0.0) {
+        finalColor = blinkColor;
+    }
+
+    fragColor = vec4(finalColor, 1.0);
 }

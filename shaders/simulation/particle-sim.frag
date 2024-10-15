@@ -15,11 +15,16 @@ uniform bool addDamping;
 uniform float dampingFactor;
 uniform bool collisionsCauseRelativeVelocity;
 
+uniform float maxCollisions;
+uniform float colorFrames;
+
 layout(location = 0) out vec3 finalPosition;
 layout(location = 1) out vec3 finalVelocity;
 layout(location = 2) out vec3 finalBounceData;
 
 void main() {
+
+    bool collided = false;
     
     vec2 texCoords = gl_FragCoord.xy / vec2(textureSize(previousPositions, 0));
 
@@ -30,73 +35,64 @@ void main() {
     vec3 acceleration = vec3(0, -9.81, 0);  // Gravity acceleration
 
     finalPosition = currentPosition + currentVelocity * timestep + 0.5 * acceleration * timestep * timestep;
-    
     finalVelocity = currentVelocity + acceleration * timestep;
-
     finalBounceData = texture(previousBounceData, texCoords).xyz;
 
-
-
-
     if (interParticleCollision) {
-        // Loop over all other particles
         for (uint i = 0; i < numParticles; ++i) {
-            // Fetch the other particle's position
-            vec2 otherTexCoords = vec2(float(i) / float(numParticles), 0.0);  // Simplified texture coordinate sampling for demo
-        
+            vec2 otherTexCoords = vec2(float(i) / float(numParticles), 0.0);  
             vec3 otherPosition = texture(previousPositions, otherTexCoords).xyz;
             vec3 otherVelocity = texture(previousVelocities, otherTexCoords).xyz;
 
-            // Ensure we do not check the same particle against itself
             if (otherPosition == currentPosition) continue;
 
-            // Compute distance between particles
             vec3 deltaPos = finalPosition - otherPosition;
             float dist = length(deltaPos);
         
-            if (dist < 2.0 * particleRadius - 0.005f) {  // Collision detected
-                // Calculate the normal at the point of collision
+            if (dist < 2.0 * particleRadius - 0.005f) {
                 vec3 normal = normalize(deltaPos);
-            
-                // Nudge the particles apart to avoid overlap
                 float overlap = 2.0 * particleRadius - dist;
                 finalPosition += normal * overlap * 1.0001;
 
-               
-                if( collisionsCauseRelativeVelocity ){
-				    //Reflect the velocities of both particles along the normal
+                if (collisionsCauseRelativeVelocity) {
                     vec3 relativeVelocity = finalVelocity - otherVelocity;
                     float normalSpeed = dot(relativeVelocity, normal);
-                    
                     if (normalSpeed < 0.0) {
                         finalVelocity -= normal * normalSpeed;
                     }
-				} else {
+                } else {
                     finalVelocity = reflect(finalVelocity, normal);
                 }
-                
+
+                collided = true;
             }
         }
     }
 
-    
-    // ===== Task 1.2 Container Collision =====
-
-    float damp = 1.0f;
-    if (addDamping) {
-		damp = dampingFactor;
-    } else {
-		damp = 1.0f;
-	}
-
+    float damp = addDamping ? dampingFactor : 1.0f;
     float distance = length(finalPosition - containerCenter);
     if (distance >= containerRadius - particleRadius - 0.005f) {
-        // Reflect the position and velocity
         vec3 normal = normalize(finalPosition - containerCenter);
         finalPosition = containerCenter + normal * (containerRadius - particleRadius - 0.005f);
-    
-        // Reflect the velocity and apply damping
         finalVelocity = reflect(finalVelocity, normal) * damp;
+        collided = true;
     }
 
+    // ===== Part 3: Bounce Blinks =====
+    vec2 bounceData = texture(previousBounceData, texCoords).xy;
+
+    float bounces = bounceData.x;
+    float frames = bounceData.y;
+
+    if (collided) {
+        bounces += 1.0;
+        if (bounces >= maxCollisions) {
+            bounces = 0.0;
+            frames = colorFrames;
+        }
+    } else {
+        frames = max(0.0, frames);
+    }
+
+    finalBounceData = vec3(bounces, frames, 0.0);
 }
