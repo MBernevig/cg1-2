@@ -16,32 +16,72 @@ layout(location = 1) out vec3 finalVelocity;
 layout(location = 2) out vec3 finalBounceData;
 
 void main() {
-    // Normalized texture coordinates for accessing particle data
+    
     vec2 texCoords = gl_FragCoord.xy / vec2(textureSize(previousPositions, 0));
 
-    // Fetch the current position and velocity of this particle
     vec3 currentPosition = texture(previousPositions, texCoords).xyz;
     vec3 currentVelocity = texture(previousVelocities, texCoords).xyz;
 
     // ===== Task 1.1 Verlet Integration =====
     vec3 acceleration = vec3(0, -9.81, 0);  // Gravity acceleration
 
-    // Update the position using Verlet integration
     finalPosition = currentPosition + currentVelocity * timestep + 0.5 * acceleration * timestep * timestep;
     
-    // Update the velocity
     finalVelocity = currentVelocity + acceleration * timestep;
 
-    // Fetch the bounce data
     finalBounceData = texture(previousBounceData, texCoords).xyz;
 
 
 
 
-    // ===== Task 1.3 Inter-particle Collision =====
     if (interParticleCollision) {
+    // Loop over all other particles
+    for (uint i = 0; i < numParticles; ++i) {
+        // Fetch the other particle's position
+        vec2 otherTexCoords = vec2(float(i) / float(numParticles), 0.0);  // Simplified texture coordinate sampling for demo
+        
+        vec3 otherPosition = texture(previousPositions, otherTexCoords).xyz;
+        vec3 otherVelocity = texture(previousVelocities, otherTexCoords).xyz;
+
+        // Ensure we do not check the same particle against itself
+        if (otherPosition == currentPosition) continue;
+
+        // Compute distance between particles
+        vec3 deltaPos = finalPosition - otherPosition;
+        float dist = length(deltaPos);
+        
+        if (dist < 2.0 * particleRadius) {  // Collision detected
+            // Calculate the normal at the point of collision
+            vec3 normal = normalize(deltaPos);
+            
+            // Nudge the particles apart to avoid overlap
+            float overlap = 2.0 * particleRadius - dist;
+            finalPosition += normal * (overlap * 0.5);
+            
+            // Reflect the velocities of both particles along the normal
+            vec3 relativeVelocity = finalVelocity - otherVelocity;
+            float normalSpeed = dot(relativeVelocity, normal);
+
+            if (normalSpeed < 0.0) {
+                finalVelocity -= normal * normalSpeed;
+            }
+        }
     }
+}
+
     
     // ===== Task 1.2 Container Collision =====
+
+    float dampingFactor = 0.9;  // Adjust this to control how much velocity is lost after bounce
+
+    float distance = length(finalPosition - containerCenter);
+    if (distance >= containerRadius - particleRadius - 0.005f) {
+        // Reflect the position and velocity
+        vec3 normal = normalize(finalPosition - containerCenter);
+        finalPosition = containerCenter + normal * (containerRadius - particleRadius - 0.005f);
+    
+        // Reflect the velocity and apply damping
+        finalVelocity = reflect(finalVelocity, normal) * dampingFactor;
+    }
 
 }
