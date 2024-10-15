@@ -23,6 +23,23 @@ struct Config {
     float sphereRadius              = 3.0f;
     glm::vec3 sphereColor           = glm::vec3(1.0f);
 
+	// ======Extras======
+
+    bool addDamping = false;
+	float dampingFactor = 0.1f;
+	bool collisionsCauseRelativeVelocity = false;
+
+
+
     // ===== Part 2: Drawing =====
+
+	glm::vec3 lowSpeedColor = glm::vec3(0.0f, 0.0f, 1.0f);
+	glm::vec3 highSpeedColor = glm::vec3(1.0f, 0.0f, 0.0f);
+	float maxSpeed = 5.f;
+    
+	bool useShading = true;
+
+	float ambientCoefficient = 0.1f;
+	glm::vec3 lightColor = glm::vec3(1.0f);
 
 };

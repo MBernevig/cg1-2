@@ -1,6 +1,9 @@
 #version 410
 
-uniform vec3 containerCenter;
+uniform vec3 containerCenter;  // The position of the light source, which is at the center of the container.
+uniform float ambientCoefficient;  // Ambient coefficient, controlled via GUI.
+uniform vec3 lightColor;  // Color of the light source.
+uniform bool useShading;  // Toggle shading on or off.
 
 layout(location = 0) in vec3 fragPosition;
 layout(location = 1) in vec3 fragNormal;
@@ -9,6 +12,10 @@ layout(location = 3) in vec3 fragBounceData;
 
 layout(location = 0) out vec4 fragColor;
 
+uniform vec3 lowSpeedColor;
+uniform vec3 highSpeedColor;
+uniform float maxSpeed;
+
 void main() {
     vec3 baseColor = vec3(1.0);
 
@@ -16,7 +23,24 @@ void main() {
 
     vec3 finalColor = baseColor;
 
-    // ===== Task 2.2 Shading =====
+    float currSpeed = length(fragVelocity);
+    float speedFactor = currSpeed / maxSpeed;
 
-    fragColor = vec4(finalColor, 1.0);
+    finalColor = mix(lowSpeedColor, highSpeedColor, speedFactor);
+
+    // ===== Task 2.2 Shading =====
+    if (useShading) {
+        // Ambient shading term
+        vec3 ambientTerm = ambientCoefficient * finalColor;
+
+        // Diffuse shading term
+        vec3 lightDir = normalize(containerCenter - fragPosition);  // Light direction from fragment to light source
+        float diffuseFactor = max(dot(fragNormal, lightDir), 0.0);  // Diffuse factor based on angle between normal and light
+        vec3 diffuseTerm = diffuseFactor * lightColor * finalColor;
+
+        // Combine ambient and diffuse components
+        finalColor = ambientTerm + diffuseTerm;
+    }
+
+    fragColor = vec4(finalColor, 1.0);  // Output the color with alpha = 1.0
 }

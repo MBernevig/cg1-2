@@ -11,6 +11,10 @@ uniform vec3 containerCenter;
 uniform float containerRadius;
 uniform bool interParticleCollision;
 
+uniform bool addDamping;
+uniform float dampingFactor;
+uniform bool collisionsCauseRelativeVelocity;
+
 layout(location = 0) out vec3 finalPosition;
 layout(location = 1) out vec3 finalVelocity;
 layout(location = 2) out vec3 finalBounceData;
@@ -35,44 +39,55 @@ void main() {
 
 
     if (interParticleCollision) {
-    // Loop over all other particles
-    for (uint i = 0; i < numParticles; ++i) {
-        // Fetch the other particle's position
-        vec2 otherTexCoords = vec2(float(i) / float(numParticles), 0.0);  // Simplified texture coordinate sampling for demo
+        // Loop over all other particles
+        for (uint i = 0; i < numParticles; ++i) {
+            // Fetch the other particle's position
+            vec2 otherTexCoords = vec2(float(i) / float(numParticles), 0.0);  // Simplified texture coordinate sampling for demo
         
-        vec3 otherPosition = texture(previousPositions, otherTexCoords).xyz;
-        vec3 otherVelocity = texture(previousVelocities, otherTexCoords).xyz;
+            vec3 otherPosition = texture(previousPositions, otherTexCoords).xyz;
+            vec3 otherVelocity = texture(previousVelocities, otherTexCoords).xyz;
 
-        // Ensure we do not check the same particle against itself
-        if (otherPosition == currentPosition) continue;
+            // Ensure we do not check the same particle against itself
+            if (otherPosition == currentPosition) continue;
 
-        // Compute distance between particles
-        vec3 deltaPos = finalPosition - otherPosition;
-        float dist = length(deltaPos);
+            // Compute distance between particles
+            vec3 deltaPos = finalPosition - otherPosition;
+            float dist = length(deltaPos);
         
-        if (dist < 2.0 * particleRadius) {  // Collision detected
-            // Calculate the normal at the point of collision
-            vec3 normal = normalize(deltaPos);
+            if (dist < 2.0 * particleRadius - 0.005f) {  // Collision detected
+                // Calculate the normal at the point of collision
+                vec3 normal = normalize(deltaPos);
             
-            // Nudge the particles apart to avoid overlap
-            float overlap = 2.0 * particleRadius - dist;
-            finalPosition += normal * (overlap * 0.5);
-            
-            // Reflect the velocities of both particles along the normal
-            vec3 relativeVelocity = finalVelocity - otherVelocity;
-            float normalSpeed = dot(relativeVelocity, normal);
+                // Nudge the particles apart to avoid overlap
+                float overlap = 2.0 * particleRadius - dist;
+                finalPosition += normal * overlap * 1.0001;
 
-            if (normalSpeed < 0.0) {
-                finalVelocity -= normal * normalSpeed;
+               
+                if( collisionsCauseRelativeVelocity ){
+				    //Reflect the velocities of both particles along the normal
+                    vec3 relativeVelocity = finalVelocity - otherVelocity;
+                    float normalSpeed = dot(relativeVelocity, normal);
+                    
+                    if (normalSpeed < 0.0) {
+                        finalVelocity -= normal * normalSpeed;
+                    }
+				} else {
+                    finalVelocity = reflect(finalVelocity, normal);
+                }
+                
             }
         }
     }
-}
 
     
     // ===== Task 1.2 Container Collision =====
 
-    float dampingFactor = 0.9;  // Adjust this to control how much velocity is lost after bounce
+    float damp = 1.0f;
+    if (addDamping) {
+		damp = dampingFactor;
+    } else {
+		damp = 1.0f;
+	}
 
     float distance = length(finalPosition - containerCenter);
     if (distance >= containerRadius - particleRadius - 0.005f) {
@@ -81,7 +96,7 @@ void main() {
         finalPosition = containerCenter + normal * (containerRadius - particleRadius - 0.005f);
     
         // Reflect the velocity and apply damping
-        finalVelocity = reflect(finalVelocity, normal) * dampingFactor;
+        finalVelocity = reflect(finalVelocity, normal) * damp;
     }
 
 }

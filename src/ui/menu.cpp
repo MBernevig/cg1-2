@@ -49,6 +49,13 @@ void Menu::drawParticleSimControls() {
         m_config.numParticles       = m_newParticleCount;
         m_config.doResetSimulation  = true;
     }
+
+	// Extras
+	ImGui::Checkbox("Add damping", &m_config.addDamping);
+	if (m_config.addDamping) {
+		ImGui::SliderFloat("Damping factor", &m_config.dampingFactor, 0.0f, 1.0f);
+		ImGui::Checkbox("Collisions cause relative velocity", &m_config.collisionsCauseRelativeVelocity);
+	}
 }
 
 void Menu::drawSphereContainerControls() {
@@ -62,5 +69,14 @@ void Menu::drawSphereContainerControls() {
 }
 
 void Menu::drawParticleColorControls() {
+
+	ImGui::ColorEdit3("Low speed color", glm::value_ptr(m_config.lowSpeedColor));
+	ImGui::ColorEdit3("High speed color", glm::value_ptr(m_config.highSpeedColor));
+	ImGui::SliderFloat("Max speed", &m_config.maxSpeed, 0.0f, 10.0f);
+
+	ImGui::Checkbox("Use shading", &m_config.useShading);
+
+	ImGui::SliderFloat("Ambient coefficient", &m_config.ambientCoefficient, 0.0f, 1.0f);
+	ImGui::ColorEdit3("Light color", glm::value_ptr(m_config.lightColor));
 }
 
