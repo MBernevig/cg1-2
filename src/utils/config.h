@@ -44,8 +44,8 @@ struct Config {
 
 	// ===== Part 3: Bounce =====
 
-    uint32_t maxCollisions = 5;
-    uint32_t colorFrames = 10;
+    float maxCollisions = 5;
+    float colorFrames = 10;
 	glm::vec3 blinkColor = glm::vec3(0.0f, 1.0f, 0.0f);
     bool enableBlink = false;
 

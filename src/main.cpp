@@ -17,7 +17,7 @@ DISABLE_WARNINGS_POP()
 #include <framework/window.h>
 
 #include <functional>
-
+#include <iostream> // For printing FPS to console
 
 int main(int argc, char* argv[]) {
     // Init core objects
@@ -37,14 +37,18 @@ int main(int argc, char* argv[]) {
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
 
+    // FPS calculation variables
+    double previousTime = glfwGetTime();
+    int frameCount = 0;
+
     // Main loop
     while (!m_window.shouldClose()) {
         // Process user input
         m_window.updateInput();
 
         // View-projection matrix setup
-        const glm::mat4 m_projection        = glm::perspective(utils::FOV, utils::ASPECT_RATIO, 0.1f, 30.0f);
-        const glm::mat4 m_viewProjection    = m_projection * mainCamera.viewMatrix();
+        const glm::mat4 m_projection = glm::perspective(utils::FOV, utils::ASPECT_RATIO, 0.1f, 30.0f);
+        const glm::mat4 m_viewProjection = m_projection * mainCamera.viewMatrix();
 
         // Bind main draw framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -69,8 +73,22 @@ int main(int argc, char* argv[]) {
         menu.draw();
         if (!io.WantCaptureMouse) { mainCamera.updateInput(); }
 
-        // Processes input and swaps the window buffer
+        // Swap the window buffer
         m_window.swapBuffers();
+
+        // FPS calculation
+        double currentTime = glfwGetTime();
+        frameCount++;
+
+        // If a second has passed
+        if (currentTime - previousTime >= 1.0) {
+            double fps = double(frameCount) / (currentTime - previousTime);
+            std::cout << "FPS: " << fps << std::endl;
+
+            // Reset for the next second
+            previousTime = currentTime;
+            frameCount = 0;
+        }
     }
 
     return EXIT_SUCCESS;

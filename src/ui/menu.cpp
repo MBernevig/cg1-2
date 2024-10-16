@@ -88,8 +88,11 @@ void Menu::drawParticleColorControls() {
 
 void Menu::drawBounceControls() {
 	ImGui::Checkbox("Enable blink", &m_config.enableBlink);
-	ImGui::SliderInt("Max collisions", reinterpret_cast<int*>(&m_config.maxCollisions), 1, 10);
-	ImGui::SliderInt("Color frames", reinterpret_cast<int*>(&m_config.colorFrames), 1, 30);
+
+    ImGui::SliderFloat("Max collisions", &m_config.maxCollisions, 0.0f, 15.0f);
+    ImGui::SliderFloat("Color frames", &m_config.colorFrames, 0.0f, 144.0f);
+
+
 	ImGui::ColorEdit3("Blink color", glm::value_ptr(m_config.blinkColor));
 
 }

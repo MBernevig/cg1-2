@@ -45,12 +45,9 @@ void main() {
         finalColor = ambientTerm + diffuseTerm;
     }
 
-    if(enableBlink) {
-        finalColor = vec3(fragBounceData.y);
-    }
 
     // Apply blink color if needed
-    if (enableBlink && fragBounceData.y > 0.0) {
+    if (enableBlink && fragBounceData.y >= 1.0) {
         finalColor = blinkColor;
     }
 

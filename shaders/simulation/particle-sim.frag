@@ -36,8 +36,7 @@ void main() {
 
     finalPosition = currentPosition + currentVelocity * timestep + 0.5 * acceleration * timestep * timestep;
     finalVelocity = currentVelocity + acceleration * timestep;
-    finalBounceData = texture(previousBounceData, texCoords).xyz;
-
+    
     if (interParticleCollision) {
         for (uint i = 0; i < numParticles; ++i) {
             vec2 otherTexCoords = vec2(float(i) / float(numParticles), 0.0);  
@@ -84,14 +83,15 @@ void main() {
     float bounces = bounceData.x;
     float frames = bounceData.y;
 
-    if (collided) {
+    if (collided && frames < 1.0f) {
+        
         bounces += 1.0;
         if (bounces >= maxCollisions) {
             bounces = 0.0;
             frames = colorFrames;
         }
     } else {
-        frames = max(0.0, frames);
+        frames = max(0.0, frames-1.0f);
     }
 
     finalBounceData = vec3(bounces, frames, 0.0);

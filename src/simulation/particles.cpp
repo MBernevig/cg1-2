@@ -168,8 +168,8 @@ void ParticlesSimulator::simulate() {
 
 
 	// ===== Part 3: Bounce =====
-	glUniform1i(simulationPass.getUniformLocation("maxCollisions"), config.maxCollisions);
-	glUniform1i(simulationPass.getUniformLocation("colorFrames"), config.colorFrames);
+	glUniform1f(simulationPass.getUniformLocation("maxCollisions"), config.maxCollisions);
+	glUniform1f(simulationPass.getUniformLocation("colorFrames"), config.colorFrames);
 
     // Render fullscreen quad to 'touch' all texels
     utils::renderQuad(simulationPass);
